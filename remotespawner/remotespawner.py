@@ -31,7 +31,7 @@ def execute(self, channel, command, process_user):
     """Execute command and get remote PID"""
 
     command = command + '& pid=$!; echo PID=$pid; echo True'
-    command = "sudo -c '{command}' -s /bin/bash {username}".format(username=process_user, command=command)
+    command = "sudo su -c '{command}' -s /bin/bash {username}".format(username=process_user, command=command)
     #command = "sudo -nH -u {username} bash -s '{command}'".format(username=process_user, command=command)
 
     stdin, stdout, stderr = channel.exec_command(command)
