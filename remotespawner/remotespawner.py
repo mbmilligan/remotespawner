@@ -97,6 +97,7 @@ class RemoteSpawner(Spawner):
     def start(self):
         """Start the process"""
         self.user.server.port = random_port()
+        self.user.server.ip = self.server_url
         cmd = []
         env = self.env.copy()
 
