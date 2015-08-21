@@ -18,41 +18,44 @@ from jupyterhub.spawner import set_user_setuid
 
 import paramiko
 
+
 def setup_ssh_tunnel(port, user, server, keyfile):
     """Setup a local SSH port forwarding"""
-    #tunnel.openssh_tunnel(port, port, "%s@%s" % (user, server))
+    # tunnel.openssh_tunnel(port, port, "%s@%s" % (user, server))
     call(["ssh", "-N", "-f", "%s@%s" % (user, server),
           "-L {port}:localhost:{port}".format(port=port),
           "-i {keyfile}".format(keyfile=keyfile)])
 
+
 def execute(channel, command, process_user):
     """Execute command and get remote PID"""
 
-    #command = command + '& pid=$!; echo PID=$pid'
-    command = 'sudo -nH -u %{username}s -s "pid_exec {command}"' % {'username': process_user, 'command': command}
+    # command = command + '& pid=$!; echo PID=$pid'
+    command = 'sudo -nH -u {username} -s "pid_exec {command}"'.format(username=process_user, command=command)
     stdin, stdout, stderr = channel.exec_command(command)
     pid = int(stdout.readline().replace("PID=", ""))
     return pid, stdin, stdout, stderr
+
 
 class RemoteSpawner(Spawner):
     """A Spawner that just uses Popen to start local processes."""
 
     INTERRUPT_TIMEOUT = Integer(10, config=True, \
-        help="Seconds to wait for process to halt after SIGINT before proceeding to SIGTERM"
-                               )
+                                help="Seconds to wait for process to halt after SIGINT before proceeding to SIGTERM"
+                                )
     TERM_TIMEOUT = Integer(5, config=True, \
-        help="Seconds to wait for process to halt after SIGTERM before proceeding to SIGKILL"
-                          )
+                           help="Seconds to wait for process to halt after SIGTERM before proceeding to SIGKILL"
+                           )
     KILL_TIMEOUT = Integer(5, config=True, \
-        help="Seconds to wait for process to halt after SIGKILL before giving up"
-                          )
+                           help="Seconds to wait for process to halt after SIGKILL before giving up"
+                           )
 
     server_url = Unicode("localhost", config=True, \
-        help="url of the remote server")
+                         help="url of the remote server")
     server_user = Unicode("jupyterhub", config=True, \
-        help="user with passwordless SSH access to the server")
+                          help="user with passwordless SSH access to the server")
     user_keyfile = Unicode("", config=True, \
-        help="Private key for user")
+                           help="Private key for user")
 
     channel = Instance(paramiko.client.SSHClient)
     pid = Integer(0)
@@ -103,13 +106,13 @@ class RemoteSpawner(Spawner):
         self.channel = paramiko.SSHClient()
         self.channel.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.channel.connect(self.server_url, username=self.server_user, key_filename=self.user_keyfile)
-        #self.proc = Popen(cmd, env=env, \
+        # self.proc = Popen(cmd, env=env, \
         #    preexec_fn=self.make_preexec_fn(self.user.name),
         #                 )
         self.log.info("Spawning %s", ' '.join(cmd))
         for item in env.items():
             cmd.insert(0, 'export %s="%s";' % item)
-        self.pid, stdin, stdout, stderr = execute(self.channel, ' '.join(cmd),self.user.name)
+        self.pid, stdin, stdout, stderr = execute(self.channel, ' '.join(cmd), self.user.name)
         print(self.user.name)
         self.log.info("Process PID is %d" % self.pid)
         self.log.info("Setting up SSH tunnel")
@@ -151,14 +154,14 @@ class RemoteSpawner(Spawner):
         """simple implementation of signal
 
         we can use it when we are using setuid (we are root)"""
-        #try:
+        # try:
         #    os.kill(self.pid, sig)
         #except OSError as e:
         #    if e.errno == errno.ESRCH:
         #        return False # process is gone
         #    else:
         #        raise
-        return True # process exists
+        return True  # process exists
 
     @gen.coroutine
     def stop(self, now=False):
@@ -167,7 +170,7 @@ class RemoteSpawner(Spawner):
         if `now`, skip waiting for clean shutdown
         """
         return
-        #if not now:
+        # if not now:
         #    status = yield self.poll()
         #    if status is not None:
         #        return
