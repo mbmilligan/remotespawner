@@ -116,8 +116,8 @@ class RemoteSpawner(Spawner):
             cmd.insert(0, 'export %s="%s";' % item)
         self.pid, stdin, stdout, stderr = execute(self, self.channel, ' '.join(cmd), self.user.name)
         self.log.info("Process PID is %d" % self.pid)
-        self.log.info("Setting up SSH tunnel")
-        setup_ssh_tunnel(self.user.server.port, self.server_user, self.server_url, self.user_keyfile)
+        #self.log.info("Setting up SSH tunnel")
+        #setup_ssh_tunnel(self.user.server.port, self.server_user, self.server_url, self.user_keyfile)
         #self.log.debug("Error %s", ''.join(stderr.readlines()))
 
     @gen.coroutine
