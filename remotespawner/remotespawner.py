@@ -27,13 +27,13 @@ def setup_ssh_tunnel(port, user, server, keyfile):
           "-i {keyfile}".format(keyfile=keyfile)])
 
 
-def execute(channel, command, process_user):
+def execute(self, channel, command, process_user):
     """Execute command and get remote PID"""
 
     # command = command + '& pid=$!; echo PID=$pid'
     command = 'sudo -nH -u {username} -s "pid_exec {command}"'.format(username=process_user, command=command)
     stdin, stdout, stderr = channel.exec_command(command)
-    print(stdout.readline())
+    self.log.debug(stdout.readline())
     pid = int(stdout.readline().replace("PID=", ""))
     return pid, stdin, stdout, stderr
 
@@ -113,8 +113,7 @@ class RemoteSpawner(Spawner):
         self.log.info("Spawning %s", ' '.join(cmd))
         for item in env.items():
             cmd.insert(0, 'export %s="%s";' % item)
-        self.pid, stdin, stdout, stderr = execute(self.channel, ' '.join(cmd), self.user.name)
-        print(self.user.name)
+        self.pid, stdin, stdout, stderr = execute(self, self.channel, ' '.join(cmd), self.user.name)
         self.log.info("Process PID is %d" % self.pid)
         self.log.info("Setting up SSH tunnel")
         setup_ssh_tunnel(self.user.server.port, self.server_user, self.server_url, self.user_keyfile)
