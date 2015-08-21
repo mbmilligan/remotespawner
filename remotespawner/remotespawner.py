@@ -33,6 +33,7 @@ def execute(channel, command, process_user):
     # command = command + '& pid=$!; echo PID=$pid'
     command = 'sudo -nH -u {username} -s "pid_exec {command}"'.format(username=process_user, command=command)
     stdin, stdout, stderr = channel.exec_command(command)
+    print(stdout.readline())
     pid = int(stdout.readline().replace("PID=", ""))
     return pid, stdin, stdout, stderr
 
