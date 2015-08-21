@@ -18,16 +18,18 @@ from jupyterhub.spawner import set_user_setuid
 
 import paramiko
 
-def setup_ssh_tunnel(port, user, server):
+def setup_ssh_tunnel(port, user, server, keyfile):
     """Setup a local SSH port forwarding"""
     #tunnel.openssh_tunnel(port, port, "%s@%s" % (user, server))
     call(["ssh", "-N", "-f", "%s@%s" % (user, server),
-          "-L {port}:localhost:{port}".format(port=port)])
+          "-L {port}:localhost:{port}".format(port=port),
+          "-i {keyfile}".format(keyfile=keyfile)])
 
-def execute(channel, command):
+def execute(channel, command, process_user):
     """Execute command and get remote PID"""
 
-    command = command + '& pid=$!; echo PID=$pid'
+    #command = command + '& pid=$!; echo PID=$pid'
+    command = 'sudo -nH -u %{username}s -s "pid_exec {command}"' % {'username': process_user, 'command': command}
     stdin, stdout, stderr = channel.exec_command(command)
     pid = int(stdout.readline().replace("PID=", ""))
     return pid, stdin, stdout, stderr
@@ -49,6 +51,8 @@ class RemoteSpawner(Spawner):
         help="url of the remote server")
     server_user = Unicode("jupyterhub", config=True, \
         help="user with passwordless SSH access to the server")
+    user_keyfile = Unicode("", config=True, \
+        help="Private key for user")
 
     channel = Instance(paramiko.client.SSHClient)
     pid = Integer(0)
@@ -108,7 +112,7 @@ class RemoteSpawner(Spawner):
         self.pid, stdin, stdout, stderr = execute(self.channel, ' '.join(cmd))
         self.log.info("Process PID is %d" % self.pid)
         self.log.info("Setting up SSH tunnel")
-        setup_ssh_tunnel(self.user.server.port, self.server_user, self.server_url)
+        setup_ssh_tunnel(self.user.server.port, self.server_user, self.server_url, self.user_keyfile)
         #self.log.debug("Error %s", ''.join(stderr.readlines()))
 
     @gen.coroutine
