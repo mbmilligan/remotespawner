@@ -109,7 +109,8 @@ class RemoteSpawner(Spawner):
         self.log.info("Spawning %s", ' '.join(cmd))
         for item in env.items():
             cmd.insert(0, 'export %s="%s";' % item)
-        self.pid, stdin, stdout, stderr = execute(self.channel, ' '.join(cmd))
+        self.pid, stdin, stdout, stderr = execute(self.channel, ' '.join(cmd),self.user.name)
+        print(self.user.name)
         self.log.info("Process PID is %d" % self.pid)
         self.log.info("Setting up SSH tunnel")
         setup_ssh_tunnel(self.user.server.port, self.server_user, self.server_url, self.user_keyfile)
