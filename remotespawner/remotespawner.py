@@ -102,7 +102,7 @@ class RemoteSpawner(Spawner):
         self.log.debug("Env: %s", str(env))
         self.channel = paramiko.SSHClient()
         self.channel.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        self.channel.connect(self.server_url, username=self.server_user, keyfile=self.user_keyfile)
+        self.channel.connect(self.server_url, username=self.server_user, key_filename=self.user_keyfile)
         #self.proc = Popen(cmd, env=env, \
         #    preexec_fn=self.make_preexec_fn(self.user.name),
         #                 )
